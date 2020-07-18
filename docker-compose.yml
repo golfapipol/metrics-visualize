@@ -1,0 +1,58 @@
+version: "3.5"
+
+services: 
+  prometheus:
+    image: prom/prometheus
+    command: --config.file=/prometheus-data/prometheus.yml
+    ports: 
+    - 9090:9090
+    volumes: 
+    - ./prometheus-data:/prometheus-data
+  grafana:
+    image: grafana/grafana
+    ports: 
+    - 3000:3000
+  app:
+    image: demo-app
+    build: 
+      context: app
+    ports: 
+    - 3300:3000
+
+  web:
+    image: buoyantio/emojivoto-web:v10
+    environment:
+      - WEB_PORT=8080
+      - EMOJISVC_HOST=emoji-svc:8080
+      - VOTINGSVC_HOST=voting-svc:8080
+      - INDEX_BUNDLE=dist/index_bundle.js
+    ports:
+      - "8080:8080"
+    depends_on:
+      - voting-svc
+      - emoji-svc
+  emoji-svc:
+    image: buoyantio/emojivoto-emoji-svc:v10
+    environment:
+      - GRPC_PORT=8080
+      - PROM_PORT=8800
+    ports:
+      - "8081:8080"
+      - "8800:8800"
+  voting-svc:
+    image: buoyantio/emojivoto-voting-svc:v10
+    environment:
+      - GRPC_PORT=8080
+      - PROM_PORT=8800
+    ports:
+      - "8082:8080"
+      - "8801:8800"
+  vote-bot:
+    image: buoyantio/emojivoto-web:v10
+    entrypoint: emojivoto-vote-bot
+    environment:
+      - WEB_HOST=web:8080
+    depends_on:
+      - web
+
+  

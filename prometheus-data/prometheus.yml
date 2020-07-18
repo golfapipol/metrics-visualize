@@ -1,0 +1,14 @@
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['app:3000']
+        labels:
+          service: 'demo-service'
+      - targets: ['emoji-svc:8800']
+        labels:
+          service: 'emojivoto-service'
+      - targets: ['voting-svc:8800']
+        labels:
+          service: 'emojivoto-service'
